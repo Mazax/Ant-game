@@ -188,12 +188,9 @@ const GAME_VERSION = "0.1";
         //right side
         textConf.align = "right";
 
-        textAntsPerSec = game.add.text(game.width-10, 20*0+10, 
-            "Ants Per Second: 0", textConf);
-        textFoodPerSec = game.add.text(game.width-10, 20*1+10, 
-            "Food Per Second: 0", textConf);
-        textNeedlesPerSec = game.add.text(game.width-10, 20*2+10, 
-            "Needles Per Second: 0", textConf);
+        textAntsPerSec = game.add.text(game.width-10, 20*0+10, "Ants Per Second: 0", textConf);
+        textFoodPerSec = game.add.text(game.width-10, 20*1+10, "Food Per Second: 0", textConf);
+        textNeedlesPerSec = game.add.text(game.width-10, 20*2+10, "Needles Per Second: 0", textConf);
         textAntsPerSec.anchor.x = 1;
         textFoodPerSec.anchor.x = 1;
         textNeedlesPerSec.anchor.x = 1;
