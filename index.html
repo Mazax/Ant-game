@@ -5,51 +5,10 @@
     <title>Awesome Ants Game</title>
     <style>* { padding: 0; margin: 0; }</style>
     <script src="js/libs/phaser.js"></script>
+    <script src="js/game.js"></script>
+    
 </head>
 <body>
-    <p>This is the game</p>
-<script>
-    var game = new Phaser.Game(600, 800, Phaser.AUTO, null, {
-      preload: preload, create: create, update: update
-    });
-
-
-    //game variables 
-    var antImage;
-    var boxAnimation;
-    var ant;
-    var box;
-
-    function preload() {
-        //setup screen
-        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-        game.scale.pageAlignHorizontally = true;
-        game.scale.pageAlignVertically = true;
-        game.stage.backgroundColor = '#555555';
-
-        //load assets
-        game.load.image('antImage', 'assets/ant-placeholder.png');
-        game.load.spritesheet('boxAnimation', 'assets/New Piskel.png', 
-            32, 32);
-    }
-
-    function create() {
-        //Queen
-        ant = game.add.sprite(0, 0, 'antImage');
-        ant.x = 100;
-        ant.y = 600;
-
-        //animation test
-        box = game.add.sprite(game.width/2, game.height/2, 
-        'boxAnimation');
-        box.animations.add("move", [0, 1, 2]);
-    }
-    function update() {
-        //ant.x = game.input.mousePointer.x - ant.width/2;
-        //ant.y = game.input.mousePointer.y - ant.height/2;
-        //animation test
-        box.animations.play("move", 10, true);
-    }
-</script>
+    <!-- The Game -->
 </body>
 </html>
