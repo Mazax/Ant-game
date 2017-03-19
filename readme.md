@@ -2,7 +2,7 @@
 ## Ant-game
 
 Free-time GameDev-club clicker-game project.
-Playable version of the game can be found here http://users.metropolia.fi/~matiamk/Ant-game/
+Playable multiplatform web-version of the game can be found here http://users.metropolia.fi/~matiamk/Ant-game/
 
 ## Installation
 
