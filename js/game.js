@@ -1,10 +1,10 @@
 
 var game = new Phaser.Game(600, 800, Phaser.AUTO, null, {
-      preload: preload, create: create, update: update
+      preload: preload, create: create, update: update, render: render
     });
 
 
-const GAME_VERSION = "0.1";
+const GAME_VERSION = "02";
 
     ///game variables///
 
@@ -60,10 +60,9 @@ const GAME_VERSION = "0.1";
 
         game.load.spritesheet('boxAnimation', './assets/New Piskel.png', 
             32, 32);
-
+    
         //input handle
-        //todo: touch controls
-        game.input.mousePointer.leftButton.onDown.add(onClick, this);
+        game.input.onTap.add(onClick, this);
     }
 
     ///// create /////
@@ -112,9 +111,6 @@ const GAME_VERSION = "0.1";
     ///// update /////
     function update() {
 
-        //antSprite.x = game.input.mousePointer.x - antSprite.width/2;
-        //antSprite.y = game.input.mousePointer.y - antSprite.height/2;
-
         //animation test
         //box.animations.play("move", 10, true);
 
@@ -122,6 +118,16 @@ const GAME_VERSION = "0.1";
         updateResources(game.time.elapsed);
         //Update gui
         updateTexts();        
+    }
+
+    function render() {
+
+        //Input debug
+        //  Just renders out the pointer data when you touch the canvas
+        //game.debug.pointer(game.input.mousePointer);
+        //game.debug.pointer(game.input.pointer1);
+        //game.debug.pointer(game.input.pointer2);
+
     }
 
     function updateResources(millisecondsFromLastFrame) {
@@ -150,14 +156,30 @@ const GAME_VERSION = "0.1";
     }
 
     //onClick is called when left mouse button is pressed 
-    function onClick(){
-
-        if (Phaser.Rectangle.contains( antSprite.getBounds(), game.input.x, game.input.y)) {
-            console.log('click');
-            ants += 1;
+    function onClick(input){
+        //Mmuse left
+        if (game.input.activePointer.isMouse){
+            if (onQueen(input.x, input.y)) {
+                console.log('click!');
+                ants += 1;
+            }
+        }
+        //touch
+        else if (game.input.pointer1.isDown){
+            if (onQueen(input.x, input.y)){
+                console.log("tap!");
+                ants += 1;
+            }
         }
     }
 
+    //Check if the parameter coordinates are on top of the queen-ant
+    function onQueen(x, y){
+        if (Phaser.Rectangle.contains( antSprite.getBounds(), x, y)) {
+            return true;
+        }
+        return false;
+    }
     /*
     function newAnt(antsAmount){
         if (antsAmount == undefined) {
