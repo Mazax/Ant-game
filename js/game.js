@@ -4,17 +4,17 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, null, {
     });
 
 
-const GAME_VERSION = "02";
+const GAME_VERSION = "03";
 
     ///game variables///
 
     //sprites
     var antImage;    
-    var antSprite;
+    var antQueen;
 
     var GUIBoxTopImage;
 
-    var boxAnimation;
+    var upgradeSprites;
     var box;
 
     //texts
@@ -29,6 +29,13 @@ const GAME_VERSION = "02";
 
     var debugText;
 
+    //buttons
+    var upgradeButton;
+
+    //audio
+    var audioSqueak;
+    var audioUpgradeSqueak;
+
     //game variables
 
     //resources
@@ -42,6 +49,8 @@ const GAME_VERSION = "02";
     //resources per second produced by an ant
     var foodPerAnt;
     var needlesPerAnt;
+
+    var upgradeCost = 10;
 
     ///// preload //////
     function preload() {
@@ -58,8 +67,12 @@ const GAME_VERSION = "02";
         game.load.image('antImage', './assets/AntQueenPreview1.png');
         game.load.image('GUIBoxTopImage', './assets/GUIBoxTop.png');
 
-        game.load.spritesheet('boxAnimation', './assets/New Piskel.png', 
-            32, 32);
+        game.load.spritesheet('upgradeSprites', './assets/upgrade-animated-placeholder.png', 
+            100, 30);
+
+        //sound effects
+        game.load.audio('audioSqueak', './assets/squeak.wav');
+        game.load.audio('audioUpgradeSqueak', './assets/upgrade-squeak.wav');
     
         //input handle
         game.input.onTap.add(onClick, this);
@@ -70,11 +83,11 @@ const GAME_VERSION = "02";
         /// Init game ///
 
         //Queen sprite
-        antSprite = game.add.sprite(0, 0, 'antImage');
-        antSprite.x = 100;
-        antSprite.y = 600;
-        antSprite.scale.x = 2;
-        antSprite.scale.y = 2;
+        antQueen = game.add.sprite(0, 0, 'antImage');
+        antQueen.x = game.width/2;
+        antQueen.y = 600;
+        antQueen.anchor.set(0.5, 0.5);
+        antQueen.scale.set(1, 1);
 
         //GUI
         initGUI();
@@ -99,13 +112,33 @@ const GAME_VERSION = "02";
         foodPerAnt = 1/3/1000; //one every 3 sec
         needlesPerAnt = 1/10/1000; //one every 10 sec
 
+        upgradeButton = game.add.button(
+                game.width*0.9, 300, "upgradeSprites", upgrade, this, 0, 0, 1
+            );
+        upgradeButton.anchor.set(0.5, 0.5);
 
+        audioSqueak = game.add.audio('audioSqueak');
+        audioUpgradeSqueak = game.add.audio('audioUpgradeSqueak');
         /*
         //animation test
         box = game.add.sprite(game.width/2, game.height/2, 
         'boxAnimation');
         box.animations.add("move", [0, 1, 2]);
         */
+    }
+
+    function upgrade() {
+        
+        console.log("Upgrade button clicked!");        
+        if (food > upgradeCost){
+            //Upgrade
+            food -= upgradeCost;
+            upgradeCost += 1;
+            antQueen.scale.x += antQueen.scale.x * 0.1;
+            antQueen.scale.y += antQueen.scale.y * 0.1;
+            audioUpgradeSqueak.play();
+            audioUpgradeSqueak._sound.playbackRate.value = upgradeCost * 0.1;
+        }
     }
 
     ///// update /////
@@ -161,6 +194,7 @@ const GAME_VERSION = "02";
         if (game.input.activePointer.isMouse){
             if (onQueen(input.x, input.y)) {
                 console.log('click!');
+                audioSqueak.play();
                 ants += 1;
             }
         }
@@ -168,6 +202,7 @@ const GAME_VERSION = "02";
         else if (game.input.pointer1.isDown){
             if (onQueen(input.x, input.y)){
                 console.log("tap!");
+                audioSqueak.play();
                 ants += 1;
             }
         }
@@ -175,7 +210,7 @@ const GAME_VERSION = "02";
 
     //Check if the parameter coordinates are on top of the queen-ant
     function onQueen(x, y){
-        if (Phaser.Rectangle.contains( antSprite.getBounds(), x, y)) {
+        if (Phaser.Rectangle.contains( antQueen.getBounds(), x, y)) {
             return true;
         }
         return false;
