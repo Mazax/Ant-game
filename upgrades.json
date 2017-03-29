@@ -1,19 +1,9 @@
 {
    "upgrades": {
 
-       "speed1": {
-         "name": "Speed 1",  
-         "reqShow": 
-         {
-            "ants": 10,
-            "food": 0,
-            "needles": 0,
-
-            "antsPerSec": 0,
-            "foodPerSec": 0,
-            "needlePerSec": 0
-         },
-         "reqBuy": 
+       "speed": {
+         "name": "Speed",
+         "cost": 
          {
             "ants": 0,
             "food": 15,
