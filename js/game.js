@@ -192,17 +192,23 @@ function render() {
     //game.debug.pointer(game.input.pointer2);
 }
 
+////////////////////
+/// Input Events ///
+////////////////////
+
 //onClick is called when left mouse button is pressed 
 function onClick(input){
     //Mmuse left
     if (game.input.activePointer.isMouse){
 
-        newUpgrade();
+        
 
         if (onQueen(input.x, input.y)) {
             console.log('click!');
             audioSqueak.play();
             ants += 1;
+
+            newUpgrade();
         }
     }
     //touch
@@ -216,17 +222,7 @@ function onClick(input){
 }
 
 function onButton(upgradeObject) {
-    var index = upgradesContainer.upgrades.indexOf(upgradeObject);
-    if (index > -1) {
-        upgradesContainer.upgrades.splice(index, 1);
-    }
     /*
-    for (var i = 0; i < upgradesContainer.upgrades.length; i++){
-        if (upgradesContainer.upgrades[i] === upgradeObject){
-
-        }
-    }
-    
     console.log("Upgrade button clicked!");        
     if (food > upgradeCost){
         //Upgrade
@@ -255,6 +251,11 @@ function newAnt(antsAmount){
     ants += antsAmount;
 }
 */
+
+////////////////
+/// Upgrades ///
+////////////////
+
 function initUpgradesContainer(topRightX, topRightY){
     var padding = 20;
 
@@ -292,7 +293,7 @@ function newUpgrade(){
         //newUpgrade.bringToTop();
 
         newUpgrade.button = game.add.button(
-                5, newUpgrade.height / 2, "upgradeSprites", onButton(newUpgrade), this, 0, 0, 1
+                5, newUpgrade.height / 2, "upgradeSprites", function() {removeUpgrade(newUpgrade)}, this, 0, 0, 1
             );
         newUpgrade.button.anchor.set(0, 0.5);
         newUpgrade.addChild(newUpgrade.button);
@@ -313,14 +314,42 @@ function newUpgradeBG(width, height, color){
     bmd.ctx.fillStyle = color;
     bmd.ctx.fill();
 
+    var vec = upgradePosition(upgradesContainer.upgrades.length);
+
+    //create sprite
+    var sprite = game.add.sprite(vec.x, vec.y, bmd);
+    sprite.anchor.setTo(0, 0);
+    return sprite;
+}
+
+function removeUpgrade(upgradeToBeRemoved){
+    console.log(upgradeToBeRemoved);
+    
+    //remove from stack
+    var index = upgradesContainer.upgrades.indexOf(upgradeToBeRemoved);
+    if (index > -1) {
+        upgradesContainer.upgrades.splice(index, 1);
+
+        //update stack positions
+        for (var i = 0; i < upgradesContainer.upgrades.length; i++){
+            var vec = upgradePosition(i);
+            upgradesContainer.upgrades[i].position.set(vec.x, vec.y);
+        }
+    }
+    //remove game object
+    upgradeToBeRemoved.kill();
+}
+
+function upgradePosition(index) {
+
     //calculate next spawn position
     var x =  - upgradesContainer.width + upgradesContainer.padding; 
     var y = upgradesContainer.padding;
-    if (upgradesContainer.upgrades.length > 0) {
-        y = previousUpgrade.y + previousUpgrade.height + upgradesContainer.padding;
+    if (index !== 0){
+        y = 
+            upgradesContainer.upgrades[index - 1].y + 
+            upgradesContainer.upgrades[index - 1].height + 
+            upgradesContainer.padding;
     }
-    //create sprite
-    var sprite = game.add.sprite(x, y, bmd);
-    sprite.anchor.setTo(0, 0);
-    return sprite;
+    return new Phaser.Point(x, y);
 }
