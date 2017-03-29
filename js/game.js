@@ -18,8 +18,7 @@ const GAME_VERSION = "03";
 
 ///asset variables///
 
-//sprites
-var antImage;    
+//sprites   
 var antQueen;
 var GUIBoxTopImage;
 var upgradeSprites;
@@ -53,7 +52,7 @@ var antsPerMilSec;
 var foodPerAnt;
 var needlesPerAnt;
 //upgrades
-var upgradeCost = 10;
+var upgradesJson;
 
 
 ////////////////////
@@ -61,6 +60,7 @@ var upgradeCost = 10;
 ////////////////////
 function preload() {
     //load plugis
+
     //setup game
     game.stage.disableVisibilityChange = true;
     //setup screen
@@ -68,17 +68,24 @@ function preload() {
     game.scale.pageAlignHorizontally = true;
     game.scale.pageAlignVertically = true;
     game.stage.backgroundColor = '#555555';
-    //load assets
-    game.load.image('antImage', './assets/AntQueenPreview1.png');
+
+    /// load assets ///
+    //sprites
     game.load.image('GUIBoxTopImage', './assets/GUIBoxTop.png');
+    //animations
+    game.load.spritesheet('antQueen', './assets/AntQueen_Spritesheet_v1.png', 
+        64, 64);
     game.load.spritesheet('upgradeSprites', './assets/upgrade-animated-placeholder.png', 
         100, 30);
     //sound effects
     game.load.audio('audioSqueak', './assets/squeak.wav');
     game.load.audio('audioUpgradeSqueak', './assets/upgrade-squeak.wav');
+    //Json
+    game.load.text('upgradesJson', '../upgrades.json');
 
     //input handle
     game.input.onTap.add(onClick, this);
+
 }
 
 //////////////////
@@ -87,11 +94,15 @@ function preload() {
 function create() {
     /// Init game ///
     //Queen sprite
-    antQueen = game.add.sprite(0, 0, 'antImage');
+    antQueen = game.add.sprite(0, 0, 'antQueen');
+    antQueen.animations.add("walk", [0, 1, 2]);
+    antQueen.animations.add("jump", [3,0]);
+    antQueen.animations.play("walk", 10, true);
     antQueen.x = game.width/2;
     antQueen.y = 600;
     antQueen.anchor.set(0.5, 0.5);
     antQueen.scale.set(1, 1);
+
     //GUI
     initGUI();
     debugText = game.add.text(game.width-10, game.height-10, 
@@ -104,6 +115,7 @@ function create() {
         });
     debugText.anchor.x = 1;
     debugText.anchor.y = 1;
+
     //counters
     ants = 0;
     food = 0;
@@ -121,6 +133,11 @@ function create() {
     //box.animations.add("move", [0, 1, 2]);
 
     initUpgradesContainer(game.width - 20, 100 + 20);
+
+    //json
+    var parsed = JSON.parse(game.cache.getText('upgradesJson'));
+    console.log("Loaded json: ");
+    console.log(parsed);
 }
 
 function initGUI(){
@@ -153,8 +170,10 @@ function initGUI(){
 ///// update /////
 //////////////////
 function update() {
-    //animation test
-    //box.animations.play("move", 10, true);
+    //animation
+    if (antQueen.animations.currentAnim.name === "jump" && antQueen.animations.frame === 0){
+         antQueen.animations.play("walk", 10, true);
+    }
     //Update game variables
     updateResources(game.time.elapsed);
     //Update gui
@@ -203,20 +222,18 @@ function onClick(input){
 
         
 
-        if (onQueen(input.x, input.y)) {
+        if (isInsideQueenSprite(input.x, input.y)) {
             console.log('click!');
-            audioSqueak.play();
-            ants += 1;
+            onQueen();
 
             newUpgrade();
         }
     }
     //touch
     else if (game.input.pointer1.isDown){
-        if (onQueen(input.x, input.y)){
+        if (isInsideQueenSprite(input.x, input.y)){
             console.log("tap!");
-            audioSqueak.play();
-            ants += 1;
+            onQueen();
         }
     }
 }
@@ -236,8 +253,14 @@ function onButton(upgradeObject) {
     */
 }
 
+function onQueen(){
+    antQueen.animations.play('jump', 10, false);
+    audioSqueak.play();
+    ants += 1;
+}
+
 //Check if the parameter coordinates are on top of the queen-ant
-function onQueen(x, y){
+function isInsideQueenSprite(x, y){
     if (Phaser.Rectangle.contains( antQueen.getBounds(), x, y)) {
         return true;
     }

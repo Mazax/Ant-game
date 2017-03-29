@@ -1,0 +1,38 @@
+{
+   "upgrades": {
+
+       "speed1": {
+         "name": "Speed 1",  
+         "reqShow": 
+         {
+            "ants": 10,
+            "food": 0,
+            "needles": 0,
+
+            "antsPerSec": 0,
+            "foodPerSec": 0,
+            "needlePerSec": 0
+         },
+         "reqBuy": 
+         {
+            "ants": 0,
+            "food": 15,
+            "needles": 0,
+
+            "antsPerSec": 0,
+            "foodPerSec": 0,
+            "needlePerSec": 0
+         },
+         "gain": 
+         {
+            "ants": 0,
+            "food": 0,
+            "needles": 0,
+
+            "antsPerSec": 0,
+            "foodPerSec": 0.00033333333,
+            "needlePerSec": 0
+         }
+       }
+    }
+}
