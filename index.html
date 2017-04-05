@@ -9,44 +9,18 @@
     <script src="js/libs/phaser.js"></script>
     <script src="js/libs/phaser-list-view.js"></script>
 	<!-- Game Script -->
-    <!--<script src="js/game.js"></script>-->
-    <script src="js/newgame.js"></script>
+    <script src="js/game.js"></script>
     
 </head>
 <body>
+    <input id="restartButton" type="submit" name="restartButton" onclick="restartGame();" value="Restart"/>    
+    <input id="pauseButton" type="submit" name="pauseButton" onclick="pauseGame();" value="Pause"/>
+    <input id="muteButton" type="submit" name="muteButton" onclick="muteGame();" value="Mute"/>
+
+    <input id="resourcesButton" type="submit" name="resourcesButton" onclick="ants = 9999999999;" value="Get resources"/>
+			
     <!-- The Game -->
     <script>
-        /*
-        antGame = new Phaser.Game(
-            600, 
-            800, 
-            Phaser.AUTO, 
-            null, 
-            {
-                preload: preload, 
-                create: create, 
-                update: update, 
-                render: render
-            }
-        );
-
-        function preload(){
-
-        };
-
-        function create(){
-
-        };
-
-        function update(){
-
-        };
-
-        function render(){
-
-        };
-*/
-
     </script>
 </body>
 </html>

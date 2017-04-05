@@ -14,7 +14,7 @@ var game = new Phaser.Game(
 );
 
 
-const GAME_VERSION = "04";
+const GAME_VERSION = "05";
 
 ///asset variables///
 
@@ -169,7 +169,17 @@ function initGUI(){
     textNeedlesPerSec.anchor.x = 1;
 }
 
+function restartGame(){
+    game.state.restart(true, false);
+}
 
+function pauseGame(){
+    game.paused = !game.paused;
+}
+
+function muteGame(){
+    game.sound.mute = !game.sound.mute;
+}
 
 //////////////////
 ///// update /////
