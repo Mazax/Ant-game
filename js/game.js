@@ -52,6 +52,8 @@ var antsPerMilSec;
 //resources per second produced by an ant
 var foodPerAnt;
 var needlesPerAnt;
+
+
 //upgrades
 var upgrades;
 var upgradesJson;
@@ -280,8 +282,6 @@ function newAnt(antsAmount){
 ////////////////
 /// Upgrades ///
 ////////////////
-
-
 
 function initUpgradesContainer(topRightX, topRightY){
     var padding = 20;
