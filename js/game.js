@@ -16,6 +16,16 @@ var game = new Phaser.Game(
 
 const GAME_VERSION = "05";
 
+var UPGRADES = {
+    antsPerMilSec: 0, 
+    foodPerMilSec: 1,
+    needlesPerMilSec: 2,
+
+    antsPerClick: 3,
+    foodPerAnt: 4,
+    needlesPerAnt: 5
+}
+
 ///asset variables///
 
 //sprites   
@@ -47,12 +57,29 @@ var upgradesContainer;
 var ants;
 var food;
 var needles;
+
+//speed of resource gathering
+var antsPerClick;
+
+var antsPerMilSec; 
+var foodPerMilSec;
+var needlesPerMilSec;
+
+//amount per gather
+var foodPerAnt;
+var needlesPerAnt;
+
+/*
+//resources
+var ants;
+var food;
+var needles;
 //amount per second
 var antsPerMilSec;
 //resources per second produced by an ant
 var foodPerAnt;
 var needlesPerAnt;
-
+*/
 
 //upgrades
 var upgrades;
@@ -123,13 +150,19 @@ function create() {
     debugText.anchor.x = 1;
     debugText.anchor.y = 1;
 
-    //resource counters
+    ///resource init
     ants = 0;
     food = 0;
-    needles = 0;
+    needles= 0;    
+
     antsPerMilSec = 0;
-    foodPerAnt = 1/3/1000; //one every 3 sec
-    needlesPerAnt = 1/10/1000; //one every 10 sec
+    foodPerMilSec = 1/3/1000;
+    needlesPerMilSec = 1/10/1000;
+
+    antsPerClick = 1;
+    foodPerAnt = 1;
+    needlesPerAnt = 1;
+
     //audio
     audioSqueak = game.add.audio('audioSqueak');
     audioUpgradeSqueak = game.add.audio('audioUpgradeSqueak');
@@ -141,7 +174,7 @@ function create() {
 
     //initUpgrades();
     initUpgradesContainer(game.width - 20, 100 + 20);
-    initUpgrade();
+    //initUpgrades();
 
     //json
     var upgradesJson = JSON.parse(game.cache.getText('upgradesJson'));
@@ -196,13 +229,9 @@ function update() {
 }
 
 function updateResources(millisecondsFromLastFrame) {
-    //calculate resources per millisecond
-    var foodPerMilSec = foodPerAnt * ants;
-    var needlesPerMilSec = needlesPerAnt * ants;
-    //add resources
     ants += antsPerMilSec * millisecondsFromLastFrame;
-    food += foodPerMilSec * millisecondsFromLastFrame;
-    needles += needlesPerMilSec * millisecondsFromLastFrame;
+    food += ants* foodPerAnt * foodPerMilSec * millisecondsFromLastFrame;
+    needles += ants * needlesPerAnt * needlesPerMilSec * millisecondsFromLastFrame;
 }   
 
 function updateUpgrades() {
@@ -217,9 +246,9 @@ function updateTexts(){
     textAntsPerSec.text = 
         "Ants Per Second: " + (antsPerMilSec * 1000).toFixed(2);
     textFoodPerSec.text = 
-        "Food Per Second: " + (foodPerAnt * ants * 1000).toFixed(1);
+        "Food Per Second: " + (foodPerMilSec * ants * 1000).toFixed(1);
     textNeedlesPerSec.text = 
-        "Needles Per Second: " + (needlesPerAnt * ants * 1000).toFixed(1);
+        "Needles Per Second: " + (needlesPerMilSec * ants * 1000).toFixed(1);
 }
 
 function render() {
@@ -248,6 +277,7 @@ function onClick(input){
         if (isInsideQueenSprite(input.x, input.y)){
             //console.log("tap!");
             onQueen();
+            upgradesContainer.upgrades[0].buy();
         }
     }
 }
@@ -270,7 +300,7 @@ function onButton(upgradeObject) {
 function onQueen(){
     antQueen.animations.play('jump', 10, false);
     audioSqueak.play();
-    ants += 1;
+    ants += antsPerClick;
 }
 
 //Check if the parameter coordinates are on top of the queen-ant
@@ -280,6 +310,7 @@ function isInsideQueenSprite(x, y){
     }
     return false;
 }
+
 /*
 function newAnt(antsAmount){
     if (antsAmount == undefined) {
@@ -316,157 +347,69 @@ function initUpgradesContainer(topRightX, topRightY){
     //init upgrade-array
     upgradesContainer.upgrades = [];
     upgradesContainer.padding = 10;
+
+    initUpgrades();
 }
 
-function initUpgrade(){
-    createUpgrade("Needle");
-    createUpgrade("Ant");
-    createUpgrade("Food");
+function initUpgrades(){    
+    upgradesContainer.upgrades[UPGRADES.antsPerClick] = new Upgrade(UPGRADES.antsPerClick, "ants per click", 20, 10);
+    upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.antsPerClick]);
+    upgradesContainer.upgrades[UPGRADES.foodPerAnt] = new Upgrade(UPGRADES.foodPerAnt, "food per ant", 20, 10);
+    upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.foodPerAnt]);
+    upgradesContainer.upgrades[UPGRADES.needlesPerAnt] = new Upgrade(UPGRADES.needlesPerAnt, "needles per ant", 20, 10);
+    upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.needlesPerAnt]);
 }
 
-function createUpgrade(type, cost){
-    if (cost === undefined){
-        cost = 10; //set default 
-    }
-    var upgrade = createUpgradeBase();
-    upgrade.name = type;
-    upgrade.cost = cost;
-    upgrade.interest = 5;
+function Upgrade(type, name, cost, interest){
+    var width = upgradesContainer.width - (upgradesContainer.padding * 2);
+    var height = 70;  
 
-    upgrade.buy = createBuyFunction(type, upgrade);
-        
-    upgrade.text = game.add.text(upgrade.width - 10, 10, 
-        upgrade.name + " " + upgrade.cost, textConfiguration);
-    upgrade.text.anchor.set(1,0);
-    upgrade.addChild(upgrade.text);
-    //upgrade.visible = false;
-    return upgrade;
-}
+    var x = -upgradesContainer.width + upgradesContainer.padding;
+    var y = (height * type) + (upgradesContainer.padding * type); 
 
-function createBuyFunction(type, upgrade){
-    var buyFunction;
-    switch(type){
-        case "Food":
-            buyFunction = 
-                function(){
-                    if (food >= this.cost){
-                        //Buy succesfull
-                        food = food - this.cost;
-                        foodPerAnt = foodPerAnt * 1.01;
-                        removeUpgrade(upgrade);
-                        createUpgrade("Food", this.cost + this.interest)
-                    }else{
-                        console.log("Not enough food!");
-                    }
-                };
-            break;
-        case "Needle":
-            buyFunction = 
-                function(){
-                    if (needles >= this.cost){
-                        //Buy succesfull
-                        needles = needles - this.cost;
-                        needlesPerAnt = needlesPerAnt * 1.01;
-                        removeUpgrade(upgrade);
-                        createUpgrade("Needle", this.cost + this.interest)
-                    }else{
-                        console.log("Not enough needles!");
-                    }
-                };
-            break;
-        case "Ant":
-            buyFunction = 
-                function(){
-                    if (ants >= this.cost){
-                        //Buy succesfull
-                        ants = ants - this.cost;
-                        if (antsPerMilSec === 0){
-                            antsPerMilSec = 1/1000;
-                        }
-                        antsPerMilSec = antsPerMilSec * 1.01;
-                        removeUpgrade(upgrade);
-                        createUpgrade("Ant", this.cost + this.interest)
-                    }else{
-                        console.log("Not enough ants!");
-                    }
-                };
-            break;
-    }
-    return buyFunction;
-}
-
-
-function createUpgradeBase(){
-    if (upgradesContainer.upgrades.length < 10){
-        //get width and height
-        var width = upgradesContainer.width - upgradesContainer.padding * 2;
-        var height = 50;
-
-        //create a new upgrade
-        var upgrade = createUpgradeBG(width, height, '#e07247');
-        upgradesContainer.addChild(upgrade);
-        //newUpgrade.bringToTop();
-
-        upgrade.button = game.add.button(
-                5, upgrade.height / 2, "upgradeSprites", function() {upgrade.buy()}, this, 0, 0, 1
-            );
-        upgrade.button.anchor.set(0, 0.5);
-        upgrade.addChild(upgrade.button);
-
-
-        //add upgrade to stack
-        upgradesContainer.upgrades.push(upgrade);
-        return upgrade;
-    }
-}
-
-function createUpgradeBG(width, height, color){
-
-    var previousUpgrade = upgradesContainer.upgrades[upgradesContainer.upgrades.length - 1];
     //create BG bitmap
     var bmd = game.add.bitmapData(width, height);
 
     bmd.ctx.beginPath();
     bmd.ctx.rect(0, 0, width, height);
-    bmd.ctx.fillStyle = color;
+    bmd.ctx.fillStyle = '#e07247';
     bmd.ctx.fill();
 
-    var vec = updateUpgradePosition(upgradesContainer.upgrades.length);
-
     //create sprite
-    var sprite = game.add.sprite(vec.x, vec.y, bmd);
-    sprite.anchor.setTo(0, 0);
-    return sprite;
-}
+    var upgrade = game.add.sprite(x, y, bmd);
 
-function removeUpgrade(upgradeToBeRemoved){
-    //console.log(upgradeToBeRemoved);
+    upgrade.width = width;
+    upgrade.height = height;   
+
+    upgrade.type = type;
+    upgrade.name = name;
+    upgrade.cost = cost;
+    upgrade.interest = interest;
+    upgrade.buy = createBuyFunction(upgrade.type, upgrade.cost, upgrade.interest);
     
-    //remove from stack
-    var index = upgradesContainer.upgrades.indexOf(upgradeToBeRemoved);
-    if (index > -1) {
-        upgradesContainer.upgrades.splice(index, 1);
+    upgrade.text = game.add.text(upgradesContainer.padding, upgradesContainer.padding, 
+        upgrade.name + "\nCost: " + upgrade.cost, textConfiguration);
+    upgrade.addChild(upgrade.text);
 
-        //update stack positions
-        for (var i = 0; i < upgradesContainer.upgrades.length; i++){
-            var vec = updateUpgradePosition(i);
-            upgradesContainer.upgrades[i].position.set(vec.x, vec.y);
-        }
-    }
-    //remove game object
-    upgradeToBeRemoved.kill();
+    return upgrade;
 }
 
-function updateUpgradePosition(index) {
+function createBuyFunction(type, cost, interest){
+    var buyFunction;
+    switch(type){
+        case UPGRADES.antsPerClick:
+            buyFunction = 
+                function(){
+                    if (food >= cost){
+                        //Buy succesfull
+                        food = food - cost;
+                        antsPerClick = antsPerClick + 1;
 
-    //calculate next spawn position
-    var x =  - upgradesContainer.width + upgradesContainer.padding; 
-    var y = upgradesContainer.padding;
-    if (index !== 0){
-        y = 
-            upgradesContainer.upgrades[index - 1].y + 
-            upgradesContainer.upgrades[index - 1].height + 
-            upgradesContainer.padding;
+                    }else{
+                        console.log("Not enough food!");
+                    }
+                };
+            break;
     }
-    return new Phaser.Point(x, y);
+    return buyFunction;
 }
