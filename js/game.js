@@ -14,7 +14,7 @@ var game = new Phaser.Game(
 );
 
 
-const GAME_VERSION = "05";
+const GAME_VERSION = "07";
 
 var UPGRADES = {
     antsPerMilSec: 0, 
@@ -22,6 +22,7 @@ var UPGRADES = {
     needlesPerMilSec: 2,
 
     antsPerClick: 3,
+
     foodPerAnt: 4,
     needlesPerAnt: 5
 }
@@ -156,7 +157,7 @@ function create() {
     needles= 0;    
 
     antsPerMilSec = 0;
-    foodPerMilSec = 1/3/1000;
+    foodPerMilSec = 1/5/1000;
     needlesPerMilSec = 1/10/1000;
 
     antsPerClick = 1;
@@ -267,14 +268,21 @@ function render() {
 function onClick(input){
     //Mmuse left
     if (game.input.activePointer.isMouse){
-        if (isInsideQueenSprite(input.x, input.y)) {
+        if (isInsideObjectSprite(input.x, input.y, antQueen)){
             //console.log('click!');
             onQueen();            
+        }
+        for (var i = 0; i < upgradesContainer.upgrades.length; i++){
+            if (isInsideObjectSprite(input.x, input.y, upgradesContainer.upgrades[i])){
+                if(upgradesContainer.upgrades[i] != undefined){
+                    upgradesContainer.upgrades[i].buy();
+                }
+            }
         }
     }
     //touch
     else if (game.input.pointer1.isDown){
-        if (isInsideQueenSprite(input.x, input.y)){
+        if (isInsideObjectSprite(input.x, input.y, antQueen)){
             //console.log("tap!");
             onQueen();
             upgradesContainer.upgrades[0].buy();
@@ -306,6 +314,13 @@ function onQueen(){
 //Check if the parameter coordinates are on top of the queen-ant
 function isInsideQueenSprite(x, y){
     if (Phaser.Rectangle.contains( antQueen.getBounds(), x, y)) {
+        return true;
+    }
+    return false;
+}
+
+function isInsideObjectSprite(x, y, object){
+    if (Phaser.Rectangle.contains( object.getBounds(), x, y)) {
         return true;
     }
     return false;
@@ -351,13 +366,42 @@ function initUpgradesContainer(topRightX, topRightY){
     initUpgrades();
 }
 
-function initUpgrades(){    
-    upgradesContainer.upgrades[UPGRADES.antsPerClick] = new Upgrade(UPGRADES.antsPerClick, "ants per click", 20, 10);
+function initUpgrades(){  
+    
+    upgradesContainer.upgrades[UPGRADES.antsPerMilSec] = 
+        new Upgrade(UPGRADES.antsPerMilSec, "ants per mil sec", 10000, 10000);
+    upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.antsPerMilSec]);
+
+    upgradesContainer.upgrades[UPGRADES.foodPerMilSec] = 
+        new Upgrade(UPGRADES.foodPerMilSec, "food per mil sec", 500, 500);
+    upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.foodPerMilSec]);
+///combine
+    upgradesContainer.upgrades[UPGRADES.needlesPerMilSec] = 
+        new Upgrade(UPGRADES.needlesPerMilSec, "needles per mil sec", 500, 500);
+    upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.needlesPerMilSec]);
+
+    upgradesContainer.upgrades[UPGRADES.antsPerClick] = 
+        new Upgrade(UPGRADES.antsPerClick, "ants per click", 100, 500); //change this
     upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.antsPerClick]);
-    upgradesContainer.upgrades[UPGRADES.foodPerAnt] = new Upgrade(UPGRADES.foodPerAnt, "food per ant", 20, 10);
+
+    upgradesContainer.upgrades[UPGRADES.foodPerAnt] = 
+        new Upgrade(UPGRADES.foodPerAnt, "food per ant", 10, 10);
     upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.foodPerAnt]);
-    upgradesContainer.upgrades[UPGRADES.needlesPerAnt] = new Upgrade(UPGRADES.needlesPerAnt, "needles per ant", 20, 10);
+
+    upgradesContainer.upgrades[UPGRADES.needlesPerAnt] = 
+        new Upgrade(UPGRADES.needlesPerAnt, "needles per ant", 20, 20);
     upgradesContainer.addChild(upgradesContainer.upgrades[UPGRADES.needlesPerAnt]);
+    
+    /*
+    for (var i = 0; i < Object.keys(UPGRADES).length; i++){
+
+        var keys = Object.keys(UPGRADES);
+
+        upgradesContainer.upgrades[i] = 
+            new Upgrade(i, keys[i], 20, 10);
+        upgradesContainer.addChild(upgradesContainer.upgrades[i]);
+    }
+    */
 }
 
 function Upgrade(type, name, cost, interest){
@@ -365,7 +409,7 @@ function Upgrade(type, name, cost, interest){
     var height = 70;  
 
     var x = -upgradesContainer.width + upgradesContainer.padding;
-    var y = (height * type) + (upgradesContainer.padding * type); 
+    var y = (height * type) + upgradesContainer.padding + (upgradesContainer.padding * type); 
 
     //create BG bitmap
     var bmd = game.add.bitmapData(width, height);
@@ -388,7 +432,7 @@ function Upgrade(type, name, cost, interest){
     upgrade.buy = createBuyFunction(upgrade.type, upgrade.cost, upgrade.interest);
     
     upgrade.text = game.add.text(upgradesContainer.padding, upgradesContainer.padding, 
-        upgrade.name + "\nCost: " + upgrade.cost, textConfiguration);
+        upgrade.name + "\nFood cost: " + upgrade.cost, textConfiguration);
     upgrade.addChild(upgrade.text);
 
     return upgrade;
@@ -396,8 +440,22 @@ function Upgrade(type, name, cost, interest){
 
 function createBuyFunction(type, cost, interest){
     var buyFunction;
+
+        buyFunction = 
+                function(){
+                    if (food >= cost){
+                        //Buy succesfull
+                        food = food - cost;
+                        antsPerClick = antsPerClick + 1;
+
+                    }else{
+                        console.log("Not enough food!");
+                    }
+                };
+            break;
+    /*
     switch(type){
-        case UPGRADES.antsPerClick:
+        case UPGRADES.antsPerMilSec:
             buyFunction = 
                 function(){
                     if (food >= cost){
@@ -411,5 +469,7 @@ function createBuyFunction(type, cost, interest){
                 };
             break;
     }
+    */
+
     return buyFunction;
 }
