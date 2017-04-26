@@ -31,6 +31,7 @@ var UPGRADES = {
 
 //sprites   
 var antQueen;
+var nest;
 var GUIBoxTopImage;
 var upgradeSprites;
 var box;
@@ -104,6 +105,7 @@ function preload() {
     /// load assets ///
     //sprites
     game.load.image('GUIBoxTopImage', './assets/GUIBoxTop.png');
+    game.load.image('nest', './assets/Anthill_v4.png');
     //animations
     game.load.spritesheet('antQueen', './assets/AntQueen_Spritesheet_v1.png', 
         64, 64);
@@ -125,6 +127,10 @@ function preload() {
 //////////////////
 function create() {
     /// Init game ///
+    //nest
+    nest = game.add.sprite((game.width / 4), (game.height / 4 * 3), 'nest');
+    nest.anchor.set(0.5, 0.9);
+    nest.scale.set(0.5, 0.5);
     //Queen sprite
     antQueen = game.add.sprite(0, 0, 'antQueen');
     antQueen.animations.add("walk", [0, 1, 2]);
@@ -134,6 +140,7 @@ function create() {
     antQueen.y = game.height / 4 * 3;
     antQueen.anchor.set(0.5, 0.5);
     antQueen.scale.set(1, 1);
+
 
     //GUI
     textConfiguration = { 
@@ -223,6 +230,8 @@ function update() {
     if (antQueen.animations.currentAnim.name === "jump" && antQueen.animations.frame === 0){
          antQueen.animations.play("walk", 10, true);
     }
+    var nestScale = 0.5 + (needles / 10000);
+    nest.scale.set(nestScale, nestScale);
     //Update game variables
     updateResources(game.time.elapsed);
     //Update gui
@@ -440,7 +449,7 @@ function Upgrade(type, name, cost, interest){
 
 function createBuyFunction(type, cost, interest){
     var buyFunction;
-
+/*
         buyFunction = 
                 function(){
                     if (food >= cost){
@@ -452,10 +461,48 @@ function createBuyFunction(type, cost, interest){
                         console.log("Not enough food!");
                     }
                 };
-            break;
-    /*
+*/
     switch(type){
         case UPGRADES.antsPerMilSec:
+            buyFunction = 
+                function(){
+                    if (food >= cost){
+                        //Buy succesfull
+                        food = food - cost;
+                        antsPerMilSec = antsPerMilSec + 5;
+
+                    }else{
+                        console.log("Not enough food!");
+                    }
+                };
+            break;
+         case UPGRADES.foodPerMilSec:
+            buyFunction = 
+                function(){
+                    if (food >= cost){
+                        //Buy succesfull
+                        food = food - cost;
+                        foodPerMilSec = foodPerMilSec + 1;
+
+                    }else{
+                        console.log("Not enough food!");
+                    }
+                };
+            break;
+         case UPGRADES.needlesPerMilSec:
+            buyFunction = 
+                function(){
+                    if (food >= cost){
+                        //Buy succesfull
+                        food = food - cost;
+                        needlesPerMilSec = needlesPerMilSec + 1;
+
+                    }else{
+                        console.log("Not enough food!");
+                    }
+                };
+            break;
+        case UPGRADES.antsPerClick:
             buyFunction = 
                 function(){
                     if (food >= cost){
@@ -468,8 +515,33 @@ function createBuyFunction(type, cost, interest){
                     }
                 };
             break;
+         case UPGRADES.foodPerAnt:
+            buyFunction = 
+                function(){
+                    if (food >= cost){
+                        //Buy succesfull
+                        food = food - cost;
+                        foodPerAnt = foodPerAnt + 1;
+
+                    }else{
+                        console.log("Not enough food!");
+                    }
+                };
+            break;
+         case UPGRADES.needlesPerAnt:
+            buyFunction = 
+                function(){
+                    if (food >= cost){
+                        //Buy succesfull
+                        food = food - cost;
+                        needlesPerAnt = needlesPerAnt + 1;
+
+                    }else{
+                        console.log("Not enough food!");
+                    }
+                };
+            break;
     }
-    */
 
     return buyFunction;
 }
